@@ -1,32 +1,70 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>PA#2 — Richmond's Minimal Surface (Variant 4)</title>
+    <style>
+        body {
+            background-color: #EEEEEE;
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        #controls {
+            margin-bottom: 15px;
+            background: #FFFFFF;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .control-row {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .control-row label {
+            min-width: 170px;
+        }
+        .control-row input[type="range"] {
+            width: 180px;
+        }
+        .control-row span {
+            min-width: 30px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        #canvas-holder {
+            margin-top: 10px;
+        }
+    </style>
 
-
-<title>PA#1</title>
-<style>
-    body {
-        background-color: #EEEEEE;
-    }
-</style>
-
-<script src="./Utils/trackball-rotator.js"></script>
-<script src="./Utils/m4.js"></script>
-<script src="./shader.gpu"></script>
-<script src="./Model.js"></script>
-<script src="./main.js"></script>
-
+    <script src="./Utils/trackball-rotator.js"></script>
+    <script src="./Utils/m4.js"></script>
+    <script src="./shader.gpu"></script>
+    <script src="./Model.js"></script>
+    <script src="./main.js"></script>
 </head>
 <body onload="init()">
 
-<h2>Richmond's Minimal Surface</h2>
+    <h2>Richmond's Minimal Surface (Variant 4)</h2>
+    <p>Gouraud Shading | Facet Area Weighted Normals</p>
 
-<p id="message">Drag your mouse on the surface to rotate it.<br>
-(On a touch screen, you can use your finger.)</p>
+    <div id="controls">
+        <div class="control-row">
+            <label for="sliderU">Granularity U (r steps):</label>
+            <input type="range" id="sliderU" min="10" max="60" value="25" step="1">
+            <span id="valU">25</span>
+        </div>
+        <div class="control-row">
+            <label for="sliderV">Granularity V (&theta; steps):</label>
+            <input type="range" id="sliderV" min="10" max="80" value="50" step="1">
+            <span id="valV">50</span>
+        </div>
+    </div>
 
+    <div id="canvas-holder">
+        <canvas width="600" height="600" id="webglcanvas"></canvas>
+    </div>
 
-<div id="canvas-holder">
-   <canvas width="600" height="600" id="webglcanvas" style="background-color:red"></canvas>
-</div>
-
-
-</body></html>
+</body>
+</html>

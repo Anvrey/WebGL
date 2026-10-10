@@ -5,6 +5,10 @@ let surface;                    // A surface model
 let shProgram;                  // A shader program
 let spaceball;                  // A SimpleRotator object that lets the user rotate the view by mouse.
 
+let lightAngle = 0.0;
+let nR = 25;
+let nTheta = 50;
+
 function deg2rad(angle) {
     return angle * Math.PI / 180;
 }
@@ -18,14 +22,30 @@ function ShaderProgram(name, program) {
 
     // Location of the attribute variable in the shader program.
     this.iAttribVertex = -1;
+    this.iAttribNormal = -1;
     // Location of the uniform specifying a color for the primitive.
     this.iColor = -1;
     // Location of the uniform matrix representing the combined transformation.
     this.iModelViewProjectionMatrix = -1;
+    this.iModelViewMatrix = -1;
+    this.iNormalMatrix = -1;
+
+    this.iLightPosition = -1;
+    this.iObjectColor = -1;
+    this.iAmbientLight = -1;
+    this.iDiffuseLight = -1;
+    this.iSpecularLight = -1;
+    this.iShininess = -1;
 
     this.Use = function() {
         gl.useProgram(this.prog);
     }
+}
+
+function updateSurface() {
+    let data = {};
+    CreateSurfaceData(data, nR, nTheta);
+    surface.BufferData(data.verticesF32, data.normalsF32, data.indicesU16);
 }
 
 
@@ -53,9 +73,34 @@ function draw() {
        combined transformation matrix, and send that to the shader program. */
     let modelViewProjection = m4.multiply(projection, matAccum1 );
 
-    gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjection );
-    
-    surface.Draw(gl, shProgram);
+    let normalMatrix = m4.inverse(matAccum1);
+    m4.transpose(normalMatrix, normalMatrix);
+
+    // Circular motion of point light
+    let lightRadius = 4.0;
+    let lightWorldPos = [lightRadius * Math.cos(lightAngle), lightRadius * Math.sin(lightAngle), 2.5];
+    let lightEyePos = m4.transformPoint(matAccum1, lightWorldPos);
+
+    shProgram.Use();
+
+    gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjection);
+    gl.uniformMatrix4fv(shProgram.iModelViewMatrix, false, matAccum1);
+    gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
+
+    gl.uniform3fv(shProgram.iLightPosition, lightEyePos);
+    gl.uniform3f(shProgram.iObjectColor, 0.2, 0.7, 0.9);
+    gl.uniform3f(shProgram.iAmbientLight, 0.2, 0.2, 0.2);
+    gl.uniform3f(shProgram.iDiffuseLight, 0.8, 0.8, 0.8);
+    gl.uniform3f(shProgram.iSpecularLight, 1.0, 1.0, 1.0);
+    gl.uniform1f(shProgram.iShininess, 32.0);
+
+    surface.Draw();
+}
+
+function animate() {
+    lightAngle += 0.02;
+    draw();
+    requestAnimationFrame(animate);
 }
 
 
@@ -67,11 +112,20 @@ function initGL() {
     shProgram.Use();
 
     shProgram.iAttribVertex              = gl.getAttribLocation(prog, "vertex");
+    shProgram.iAttribNormal              = gl.getAttribLocation(prog, "normal");
     shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
-    shProgram.iColor                     = gl.getUniformLocation(prog, "color");
+    shProgram.iModelViewMatrix           = gl.getUniformLocation(prog, "ModelViewMatrix");
+    shProgram.iNormalMatrix              = gl.getUniformLocation(prog, "NormalMatrix");
 
-    surface = new Model();
-    surface.BufferData(gl);
+    shProgram.iLightPosition             = gl.getUniformLocation(prog, "LightPosition");
+    shProgram.iObjectColor               = gl.getUniformLocation(prog, "ObjectColor");
+    shProgram.iAmbientLight              = gl.getUniformLocation(prog, "AmbientLight");
+    shProgram.iDiffuseLight              = gl.getUniformLocation(prog, "DiffuseLight");
+    shProgram.iSpecularLight             = gl.getUniformLocation(prog, "SpecularLight");
+    shProgram.iShininess                 = gl.getUniformLocation(prog, "Shininess");
+
+    surface = new Model('Surface');
+    updateSurface();
 
     gl.enable(gl.DEPTH_TEST);
 }
@@ -137,5 +191,22 @@ function init() {
 
     spaceball = new TrackballRotator(canvas, draw, 0);
 
-    draw();
+    let sliderU = document.getElementById("sliderU");
+    let sliderV = document.getElementById("sliderV");
+    let valU = document.getElementById("valU");
+    let valV = document.getElementById("valV");
+
+    sliderU.addEventListener("input", function() {
+        nR = parseInt(this.value);
+        valU.innerText = nR;
+        updateSurface();
+    });
+
+    sliderV.addEventListener("input", function() {
+        nTheta = parseInt(this.value);
+        valV.innerText = nTheta;
+        updateSurface();
+    });
+
+    animate();
 }
