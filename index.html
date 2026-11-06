@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>PA#2 — Richmond's Minimal Surface (Variant 4)</title>
+    <title>ControlTask — Richmond's Minimal Surface (Variant 4)</title>
     <style>
         body {
             background-color: #EEEEEE;
@@ -23,15 +23,26 @@
             gap: 12px;
         }
         .control-row label {
-            min-width: 170px;
+            min-width: 175px;
         }
         .control-row input[type="range"] {
             width: 180px;
         }
         .control-row span {
-            min-width: 30px;
+            min-width: 35px;
             font-family: monospace;
             font-weight: bold;
+        }
+        .toggles {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #DDDDDD;
+        }
+        .toggles label {
+            min-width: auto;
+            cursor: pointer;
         }
         #canvas-holder {
             margin-top: 10px;
@@ -42,23 +53,34 @@
     <script src="./Utils/m4.js"></script>
     <script src="./shader.gpu"></script>
     <script src="./Model.js"></script>
+    <script src="./TextureHandler.js"></script>
     <script src="./main.js"></script>
 </head>
 <body onload="init()">
 
-    <h2>Richmond's Minimal Surface (Variant 4)</h2>
-    <p>Gouraud Shading | Facet Area Weighted Normals</p>
+    <h2>Richmond's Minimal Surface Control Task Variant 4</h2>
 
     <div id="controls">
         <div class="control-row">
             <label for="sliderU">Granularity U (r steps):</label>
-            <input type="range" id="sliderU" min="10" max="60" value="25" step="1">
-            <span id="valU">25</span>
+            <input type="range" id="sliderU" min="10" max="60" value="30" step="1">
+            <span id="valU">30</span>
         </div>
         <div class="control-row">
             <label for="sliderV">Granularity V (&theta; steps):</label>
-            <input type="range" id="sliderV" min="10" max="80" value="50" step="1">
-            <span id="valV">50</span>
+            <input type="range" id="sliderV" min="10" max="80" value="60" step="1">
+            <span id="valV">60</span>
+        </div>
+        <div class="control-row">
+            <label for="sliderScale">Texture Repeat Scale:</label>
+            <input type="range" id="sliderScale" min="1" max="8" value="3" step="0.5">
+            <span id="valScale">3.0</span>
+        </div>
+        <div class="toggles">
+            <label><input type="checkbox" id="chkDiffuse" checked> Diffuse Map</label>
+            <label><input type="checkbox" id="chkSpecular" checked> Specular Map</label>
+            <label><input type="checkbox" id="chkNormal" checked> Normal Map</label>
+            <label><input type="checkbox" id="chkRotateLight" checked> Rotate Light</label>
         </div>
     </div>
 
