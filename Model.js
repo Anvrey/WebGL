@@ -225,7 +225,7 @@ function CreateSurfaceData(data, nR, nTheta) {
         data.normalsF32[i * 3 + 1] = ny;
         data.normalsF32[i * 3 + 2] = nz;
 
-        // Gram-Schmidt orthogonalization (Variant 4: Prioritize normal)
+        // Gram-Schmidt orthogonalization
         let t = vertices[i].tangent;
         let dotTN = t[0] * nx + t[1] * ny + t[2] * nz;
         let tx = t[0] - dotTN * nx;
