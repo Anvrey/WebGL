@@ -13,6 +13,10 @@ let texScale = 3.0;
 let useDiffuse = 1;
 let useSpecular = 1;
 let useNormal = 1;
+let rotPoint = [0.5, 0.5];
+let rotAngle = 0.0;
+let markerProgram;
+let markerBuffer;
 
 
 // Constructor
@@ -43,6 +47,8 @@ function ShaderProgram(name, program) {
     this.iSpecularLight = -1;
     this.iShininess = -1;
     this.iTexScale = -1;
+    this.iRotationPoint = -1;
+    this.iRotationAngle = -1;
 
     this.iUseDiffuse = -1;
     this.iUseSpecular = -1;
@@ -111,12 +117,33 @@ function draw() {
     gl.uniform3f(shProgram.iSpecularLight, 1.35, 1.35, 1.35);
     gl.uniform1f(shProgram.iShininess, 14.0);
     gl.uniform1f(shProgram.iTexScale, texScale);
+    gl.uniform2fv(shProgram.iRotationPoint, rotPoint);
+    gl.uniform1f(shProgram.iRotationAngle, rotAngle);
 
     gl.uniform1i(shProgram.iUseDiffuse, useDiffuse);
     gl.uniform1i(shProgram.iUseSpecular, useSpecular);
     gl.uniform1i(shProgram.iUseNormal, useNormal);
 
     surface.Draw();
+    drawMarker(modelViewProjection);
+}
+
+function drawMarker(mvp) {
+    let theta = 2 * Math.PI * rotPoint[0];
+    let r = 0.25 + 0.75 * rotPoint[1];
+
+    gl.useProgram(markerProgram);
+    gl.uniformMatrix4fv(gl.getUniformLocation(markerProgram, "ModelViewProjectionMatrix"), false, mvp);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, markerBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(calcPoint(r, theta)), gl.DYNAMIC_DRAW);
+    let loc = gl.getAttribLocation(markerProgram, "vertex");
+    gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(loc);
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.drawArrays(gl.POINTS, 0, 1);
+    gl.enable(gl.DEPTH_TEST);
 }
 
 function animate() {
@@ -154,10 +181,15 @@ function initGL() {
     shProgram.iSpecularLight             = gl.getUniformLocation(prog, "SpecularLight");
     shProgram.iShininess                 = gl.getUniformLocation(prog, "Shininess");
     shProgram.iTexScale                  = gl.getUniformLocation(prog, "TexScale");
+    shProgram.iRotationPoint             = gl.getUniformLocation(prog, "RotationPoint");
+    shProgram.iRotationAngle             = gl.getUniformLocation(prog, "RotationAngle");
 
     shProgram.iUseDiffuse                = gl.getUniformLocation(prog, "UseDiffuse");
     shProgram.iUseSpecular               = gl.getUniformLocation(prog, "UseSpecular");
     shProgram.iUseNormal                 = gl.getUniformLocation(prog, "UseNormal");
+
+    markerProgram = createProgram(gl, markerVertexSource, markerFragmentSource);
+    markerBuffer = gl.createBuffer();
 
     surface = new Model('Surface');
     updateSurface();
@@ -259,6 +291,25 @@ function init() {
 
     document.getElementById("chkRotateLight").addEventListener("change", function() {
         rotateLight = this.checked;
+    });
+
+    document.getElementById("sliderAngle").addEventListener("input", function() {
+        rotAngle = deg2rad(parseFloat(this.value));
+        document.getElementById("valAngle").innerText = this.value;
+    });
+
+    window.addEventListener("keydown", function(e) {
+        let step = 0.02;
+        if (e.code == "KeyA") rotPoint[0] -= step;
+        else if (e.code == "KeyD") rotPoint[0] += step;
+        else if (e.code == "KeyW") rotPoint[1] += step;
+        else if (e.code == "KeyS") rotPoint[1] -= step;
+        else return;
+        rotPoint[0] = Math.min(Math.max(rotPoint[0], 0), 1);
+        rotPoint[1] = Math.min(Math.max(rotPoint[1], 0), 1);
+        document.getElementById("valPoint").innerText =
+            rotPoint[0].toFixed(2) + ", " + rotPoint[1].toFixed(2);
+        e.preventDefault();
     });
 
     animate();

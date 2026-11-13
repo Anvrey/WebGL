@@ -76,6 +76,15 @@
             <input type="range" id="sliderScale" min="1" max="8" value="3" step="0.5">
             <span id="valScale">3.0</span>
         </div>
+        <div class="control-row">
+            <label for="sliderAngle">Rotation angle (deg):</label>
+            <input type="range" id="sliderAngle" min="0" max="360" value="0" step="1">
+            <span id="valAngle">0</span>
+        </div>
+        <div class="control-row">
+            <label>Point (u, v) [A D W S]:</label>
+            <span id="valPoint" style="min-width: 90px">0.50, 0.50</span>
+        </div>
         <div class="toggles">
             <label><input type="checkbox" id="chkDiffuse" checked> Diffuse Map</label>
             <label><input type="checkbox" id="chkSpecular" checked> Specular Map</label>

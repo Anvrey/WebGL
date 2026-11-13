@@ -8,6 +8,8 @@ attribute vec2 tex;
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 NormalMatrix;
+uniform vec2 RotationPoint;
+uniform float RotationAngle;
 
 varying vec3 vVertexEye;
 varying vec3 vNormal;
@@ -20,7 +22,10 @@ void main() {
     vVertexEye = (ModelViewMatrix * vec4(vertex, 1.0)).xyz;
     vNormal = normalize((NormalMatrix * vec4(normal, 0.0)).xyz);
     vTangent = normalize((ModelViewMatrix * vec4(tangent, 0.0)).xyz);
-    vTexCoord = tex;
+    vec2 d = tex - RotationPoint;
+    float c = cos(RotationAngle);
+    float s = sin(RotationAngle);
+    vTexCoord = vec2(c * d.x - s * d.y, s * d.x + c * d.y) + RotationPoint;
 }`;
 
 // Fragment shader
@@ -41,6 +46,7 @@ uniform vec3 DiffuseLight;
 uniform vec3 SpecularLight;
 uniform float Shininess;
 uniform float TexScale;
+uniform float RotationAngle;
 
 uniform int UseDiffuse;
 uniform int UseSpecular;
@@ -64,6 +70,9 @@ void main() {
     vec3 finalN = N;
     if (UseNormal == 1) {
         vec3 mapN = texture2D(iTMU2, uv).rgb * 2.0 - 1.0;
+        float c = cos(RotationAngle);
+        float s = sin(RotationAngle);
+        mapN.xy = vec2(c * mapN.x + s * mapN.y, c * mapN.y - s * mapN.x);
         finalN = normalize(TBN * mapN);
     }
 
@@ -89,4 +98,22 @@ void main() {
     vec3 specular = SpecularLight * specTex * spec;
 
     gl_FragColor = vec4(ambient + diffuse + specular, 1.0);
+}`;
+
+
+// Marker shaders
+const markerVertexSource = `
+attribute vec3 vertex;
+uniform mat4 ModelViewProjectionMatrix;
+
+void main() {
+    gl_Position = ModelViewProjectionMatrix * vec4(vertex, 1.0);
+    gl_PointSize = 10.0;
+}`;
+
+const markerFragmentSource = `
+precision mediump float;
+
+void main() {
+    gl_FragColor = vec4(1.0, 0.1, 0.1, 1.0);
 }`;
